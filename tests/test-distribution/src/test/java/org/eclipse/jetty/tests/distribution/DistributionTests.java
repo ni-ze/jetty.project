@@ -401,4 +401,45 @@ public class DistributionTests extends AbstractDistributionTest
             }
         }
     }
+
+    @Test
+    public void testSimpleWebAppWithWebsocket() throws Exception
+    {
+        String jettyVersion = System.getProperty("jettyVersion");
+        DistributionTester distribution = DistributionTester.Builder.newInstance()
+            .jettyVersion(jettyVersion)
+            .mavenLocalRepository(System.getProperty("mavenRepoPath"))
+            .build();
+
+        String[] args1 = {
+            "--create-startd",
+            "--approve-all-licenses",
+            "--add-to-start=resources,server,http,webapp,deploy,jsp,jmx,servlet,servlets,websocket"
+        };
+        try (DistributionTester.Run run1 = distribution.start(args1))
+        {
+            assertTrue(run1.awaitFor(5, TimeUnit.SECONDS));
+            assertEquals(0, run1.getExitValue());
+
+            File war = distribution.resolveArtifact("org.eclipse.jetty.tests:test-websocket-webapp:war:" + jettyVersion);
+            distribution.installWarFile(war, "test");
+            distribution.installWarFile(war, "test2");
+
+            int port = distribution.freePort();
+            String[] args2 = {
+                "jetty.http.port=" + port
+            };
+            try (DistributionTester.Run run2 = distribution.start(args2))
+            {
+                assertTrue(run2.awaitConsoleLogsFor("Started Server@", 10, TimeUnit.SECONDS));
+
+                startHttpClient();
+                ContentResponse response = client.GET("http://localhost:" + port + "/test2/index.jsp");
+                assertEquals(HttpStatus.OK_200, response.getStatus());
+                assertThat(response.getContentAsString(), containsString("Hello"));
+                assertThat(response.getContentAsString(), not(containsString("<%")));
+            }
+        }
+    }
+
 }

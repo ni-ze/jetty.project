@@ -422,22 +422,29 @@ public class DistributionTests extends AbstractDistributionTest
             assertEquals(0, run1.getExitValue());
 
             File war = distribution.resolveArtifact("org.eclipse.jetty.tests:test-websocket-webapp:war:" + jettyVersion);
-            distribution.installWarFile(war, "test");
+            distribution.installWarFile(war, "test1");
             distribution.installWarFile(war, "test2");
 
             int port = distribution.freePort();
             String[] args2 = {
-                "jetty.http.port=" + port
+                "jetty.http.port=" + port//,
+                //"jetty.server.dumpAfterStart=true"
             };
             try (DistributionTester.Run run2 = distribution.start(args2))
             {
                 assertTrue(run2.awaitConsoleLogsFor("Started Server@", 10, TimeUnit.SECONDS));
 
                 startHttpClient();
-                ContentResponse response = client.GET("http://localhost:" + port + "/test2/index.jsp");
+                ContentResponse response = client.GET("http://localhost:" + port + "/test1/index.jsp");
                 assertEquals(HttpStatus.OK_200, response.getStatus());
                 assertThat(response.getContentAsString(), containsString("Hello"));
                 assertThat(response.getContentAsString(), not(containsString("<%")));
+
+                client.GET("http://localhost:" + port + "/test2/index.jsp");
+                assertEquals(HttpStatus.OK_200, response.getStatus());
+                assertThat(response.getContentAsString(), containsString("Hello"));
+                assertThat(response.getContentAsString(), not(containsString("<%")));
+
             }
         }
     }

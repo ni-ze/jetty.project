@@ -292,7 +292,7 @@ public class InvokerUtils
         MethodType callingType = MethodType.methodType(method.getReturnType(), cTypes);
 
         // Create low level MethodHandle
-        MethodHandles.Lookup lookup = MethodHandles.lookup();//.in(targetClass);
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
 
         try
         {

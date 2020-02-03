@@ -18,12 +18,12 @@
 
 package org.eclipse.jetty.tests.webapp.websocket;
 
+import java.io.IOException;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
 
 @ServerEndpoint("/onopen/{arg}")
 public class OnOpenServerEndpoint
